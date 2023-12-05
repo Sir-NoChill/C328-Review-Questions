@@ -1,0 +1,220 @@
+#+title: Review
+
+* Question 50
+
+SWIN transformers encode the image data using a transformer instead of a convolution. They also do so with increasing levels of granularity per pass, so the transformer picks out large objects and then progressively smaller ones.
+
+In general, a transformer will take the input image and process it using a kernel and a stride. The kernel will then overlap itself on each iteration of the convolution. With a transformer, we take a CNN but with kernel size equal to the stride, so that it essentially transforms the image into squares that it then classifies.
+
+It is demonstrated that this produces superior results to a standard convolutional network.
+
+* Question 49
+
+Advantages of a vision transformer over a convnet include the following:
+- They continue to improve proportional to the amount of data they consume for larger datasets than convnets
+- They require fewer computational resources to train at scale
+- They can handle arbitrary sized images with significant ease over convnets
+- It uses an attention mechanism that allows greater accuracy in image classification
+
+* Question 48
+
+A diffusion model will generate better images than a VAE because instead of learning features to reproduce and then fool a decoder, the diffusion model will learn the image as a whole and then reproduce it by stages in the noise reduction stage. This allows a diffusion model to have a more complete understanding of what the image is rather than parts of the image that work best to fool the decoder.
+
+* Question 47
+
+A noise schedule in a diffusion model defines the amount of noise added to an image at a given step in the 'noising' (noise addition) process. This noise schedule is important since it forms the backbone for a diffusion generator. Since a larger image will have more redundancy (correlation between nearby pixels) we need to add more noise in order to optimize the noisiness of the image at any given stage.
+
+* Question 46
+
+We need to scale the dot product attention to prevent the exploding/dissapearing gradient problem. In the paper they state that they suspect for large values of $d_k$, the dot products will grow large pushing the softmax into regions with very small gradients
+
+* Question 45
+
+Diffusion models will generally generate better images and have better variety in those images than a GAN of similar size. The downside is that a diffusion model is notably slower than a GAN of similar size.
+
+* Question 44
+
+Quantization aware training is difficult because of the precision that we lose in the intermediate calculations in our model. If we simply truncate values, then we affect all the calculations performed inside the DNN and cause increasing inaccuracy to propogate through the model
+
+
+* Quesiton 43
+
+A teacher-student compression model works by first training a large model on the dataset we want to learn. We then use this large model to supervise and correct the small model during its training. In general we will train the student network on the logit output of the teacher to maximize the efficiency of the smaller network training.
+
+* Quesiton 42
+
+The vanishing/exploding graident problem is the situation whereby a gradient approaches a very small/large value, affecting the rest of the backpropogation disproportionately. It will affect the backpropogation by either failing to get information from the final stages of the network back to the first stages of the network or by putting too much weight on a given layer of the network respectively.
+
+A RNN architecture will overcome these challenges by using residual connections, which are implemented by storing the gradient at one stage in the network and then adding it to a gradient in an earlier stage (in the vanishing case, which is the most prominent in RNN's since they are generally very long) or by clipping the gradients so that they take a smaller value (common in RNN's with certain weight propoerties)
+
+* Question 41
+
+In an RNN, we need to 'unroll' the computational graph of the network. This transforms the network into a feed-forward network to which we can then apply backpropogation with the special property that the same value can occur multiple times. [[https://d2l.ai/chapter_recurrent-neural-networks/bptt.html][Backpropogation through time]] explanation
+
+* Question 40
+
+When we talk about truncated backpropogation through time, we want to stop the computation of the gradient after a certain number $t$ of steps. This approximates the true gradient, and thus the model focuses on short term influence rather than long term.
+
+**  Diagram
+
+#+BEGIN_SRC dot
+digraph {
+    init -> first;
+    first -> second;
+    second -> third;
+    third -> {fourth, end};
+    fourth -> fifth;
+    fifth -> sixth;
+    sixth -> etc;
+    etc -> first;
+    end;
+}
+#+end_src
+Where the sequential nodes are an unrolling of the training loop and we truncate at loop element three
+
+* Question 39
+
+I would argue that it depends on the end goal of using the model. A VAE will be able to generate relatively good images and are easier to train, but a GAN will be able to produce more photorealistic images in its offerings when compared to a VAE, yet are harder to design. Thus it depends on the project's goals and how much time an individual has to experiment. [[https://ai.stackexchange.com/questions/25601/what-are-the-fundamental-differences-between-vae-and-gan-for-image-generation][See the stack exchange]]
+
+* Question 38
+
+A GAN will sample some random variable and produce an image. IN order to train a GAN, you will pit the image generator against a classifier, training the classifier to determine if the image is real or fake and training the generator to try to fool the classifier. Once the generator is trained, it can generate a photorealistic image from the random distribution at will. See the above link for a good explanation.
+
+* Quesiton 37
+
+A VAE is called a generative model because when trained on some data, it can produce more data of a similar structure (a specific type of image such as a number for example). It performs this task by taking an image and progressively decomposing it into a low-dimensional latent space, which it is then trained to reconstruct into a passable image from the initial distribution, hence the 'generative' (it generates an images from the latent space).
+
+* Question 36
+
+In brief, the goal of any autoencoder is to reproduce its input, so naturally its goal would be to learn the identity function from input to output. The key for an autoencoder is the reduction of the data to the latent space, which causes the 'generative' effect.
+
+* Question 35
+
+An autoencoder implements unsupervised learning because it does not require humans to label the data initially, we simply provide it with a dataset and away it goes. This is because an autoencoder is not a classifier, it is a generative model.
+
+* Question 34
+
+Skip connections are, generally, connections used to encode data from early in a training pipeline to another part of the pipeline. This is generally used for very deep neural networks that are experiencing increased error with a deeper pipeline. In semantic segmentation, specifically UNet, these connections are used to encode image information from the first layers of the network to the last layers in order to propogate the results from the late stage fo the network to the early stage of the network. [[https://ai.stackexchange.com/questions/37321/what-is-the-role-of-skip-connections-in-u-net][See the stack exchange]]
+
+* Question 33
+
+In semantic segmentation (specifically UNet) we use reverse convolutions to extract a feature from a low-dimensional encoding of an image produced by forward convolutions. When we run the UNet, the first half of the network reduces the image to a low dimensional space, followed by a reversal back to a high dimensional space with the feautre encodings for semantic segmentation. In order to return to that high dimensional encoding we need to somehow reverse the process of the convolution, and that is what happens with the transposed convolution.
+
+* Question 32
+
+In an image classification network, it suffices to reduce a given input to a feature vector that encodes the probability of classifying an image in one of the given categories. In semantic segmentation we with to get a feature map of where the image *is* in the image. This requires us to produce an image from an image, so we need to reverse the work of our convolutions, thus we need a fully convolutional neural network.
+
+* Question 31
+
+We need a fully convolutional neural network so that we can get the image map back from the initial image. Since a UNet (the paradigmatic architecture for semantic segmentation) first takes an image and reduces it to its features, we need some way of undoing that reduction to return the feature map, thus we require the transposed convolutions which then require a fully convolutional neural network (FConvNN).
+
+* Question 30
+
+We use region proposal networks (RPN) in object detection to offload some of the work from the classifier to increase the performance of the models. These networks work by passign to the classifier a 'proposal' of where the object will be instead of outright classifying it. With the reduced search space the classifier can then more efficiently compute the location of the object in the image.
+
+* Question 29
+
+In short, the YOLO architecture is simpler than the RCNN architecture, which allows it less computational overhead. THe RCNN architecture passes an image through the RPN and then evaluates the 'objectness' of those regions independently, whereas the YOLO network only requires a single iteration for each images, classifying them all at once by filtering the correct bounding box first sequentially using a predictor.
+
+* Question 28
+
+A fully connected neural network will not necessarily have fewer parameters than a fully connected network since we could use a 1x1 convolution.
+
+* Question 27
+
+Converting a fully connected network to a fully convolutional network gains a myriad of advantages for image processing:
+- Smaller model size
+- CNN's use spatial locality to aid with image classification
+- CNN's generally have better classification accuracy than fully connected networks.
+
+* Question 26
+
+A densenet of the same number of layers as a resnet would require significantly more memory than the corresponding resnet. This is because the ResNet uses convolutional layers and a number of other advanced techniques to effectively train itself, whereas a densenet is simply a collection of layers of fully connected networks chained together.
+
+* Question 25
+
+AlexNet's contributions to the field of computer vision were dropout and the ReLU function. It has fewer layers than ResNet and was able to efficiently predict the classification of images faster and with more accuracy than any network before it. ResNet's contributions to computer vision were the Residual connections. This network was the deepest one ever trained at the time and effectively demonstrated how to solve the vanishing gradient problem in increasingly deep neural networks.
+
+* TODO Question 24
+
+* Question 23
+
+In the described convolutional layer you will have 25 learnable parameter since the corresponding convolution will be a 5x5 convolution kernel.
+
+* Question 22
+
+In an average pooling operation there are no learnable parameters since pooling is a non-differentiable function.
+
+* Question 21
+
+There are no learnable parameters in a pooling layer.
+
+* Question 20
+
+The output of the convolution operation will be 10 layers deep, and 22x22 spatial dimensions (reduce the spatial dimentions by 2 on each side for each convolution).
+
+* Question 19
+
+$1\times\frac{h}{2}\times\frac{w}{2}$.
+
+Since we want to reduce the dimensions by half, we will want to perform $h/2$ convolution operations. Thus we need a convolutional kernel of $h/2$.
+
+* Question 18
+
+** Spatial Dimentions
+
+We can use one of several methods:
+- Pooling (avg, max, (min - we don't do that here))
+  this technique simply takes either the average or max value in the kernel and transfors it forward.
+- Convolution by a 2d convolutional kernel. This method reduces the input map by convolution, allowing the extraction of a feature map corresponding to a convolution on each valid part of the input map by the kernel. Increasing the kernel size will reduce the size of the output map.
+
+** Depth
+
+This reduction requires the use of a convolution, though I guess you could pool between layers but that would yield useless results. Your convolutional kernel will have to be 3d (but spatial dimensions could be 1x1 if you so desire) in order to reduce the depth of the output map.
+
+* Question 17
+
+Usually the number of parameters in a convolutional layer is smaller than the number of layers in the fully connected layer because the learnable parameters in the convolution are the members of the kernel. In general the kernel is much smaller than the input image and thus, the number of parameters is less than that of the FCNN
+
+* Question 16
+
+Convolutional neural networks can make use of the spatial locality that images often have to detect features. This  spatial locality also ensures that the position of elements in the image are encoded into the predictions the convnet outputs.
+
+* Question 15
+
+We will prefer gradient descent when the equation space becomes extremely large. This is what occurs in deep learning, when we have a feature landscape of several million (sometimes billion) dimensions, the closed form solution to the linear equation could take decades to solve and may not converge in any case, whereas gradient descent can provide a good approximation to an local minima of the function.
+
+* TODO Question 14
+
+* Question 13
+
+Overfitting in a convnet can be solved by several methods:
+- Decreasing the number of epochs in training
+- Adding or increasign the dropout throughout the neural network
+- Decreasing the number of layers in the network
+
+* Question 12
+
+Underfitting can be solved by the inverse of the above solutions.
+
+* Question 11
+
+Overfitting in machine learning is when a model performs overly well on the training data, and underfitting is the opposite (poor validation performance will indivate underfitting). This is why, in computer vision, we generally take the epoch that has the highest validation accuracy, that way we know when the model begins overfitting the data, since it will no longer be able to generalise to the validation set.
+
+* Question 10
+
+The K-Nearest-Neighbor (KNN) architecture works by finding the K Nearest data points and classifying the given datapoint as the same type as the majority.
+
+* Question 9
+
+Machine learning is more suitable for image classification than rule-based AI because it can effectively learn a high-dimensional non-linear equation by training. In essence, this means that a machine learning model does not decide what to do with each pixel, it decides what to do with groups of pixels, which is significantly more effective than any algorithm we could hand-code to try to perform image classification.
+
+* Question 8
+
+The minimum value of CE loss is 0, the maximum is unbound.
+
+* TODO Question 7
+
+* TODO Question 6
+
+* TODO the rest
